@@ -3,7 +3,6 @@ package edu.washington.cse332.autograder;
 import edu.washington.cse332.autograder.config.TestConfig;
 import edu.washington.cse332.autograder.config.Visibility;
 
-import java.io.File;
 import java.io.PrintStream;
 
 public class TestBundle {
@@ -20,7 +19,7 @@ public class TestBundle {
     /**
      * <p>The "sum" of all grade strings in JSON <b>without</b> partial scores</p>
      */
-    private String allGradesString = "";
+    private String allGradesStringNoPartialFailedTests = "";
 
 
     /**
@@ -33,6 +32,11 @@ public class TestBundle {
      */
     private int sumScore = 0;
 
+    /**
+     * <p>The output flow for autograder</p>
+     */
+    private final PrintStream console;
+
 
     /**
      * The constructor of TestBundle
@@ -41,10 +45,11 @@ public class TestBundle {
      * @param testVisibility     indicates the visibility of the test suite
      * @param suiteName          indicates the testcase bundle name
      */
-    public TestBundle(boolean scoreWhenAllPassed, Visibility testVisibility, String suiteName) {
+    public TestBundle(boolean scoreWhenAllPassed, Visibility testVisibility, String suiteName, PrintStream console) {
         this.config = new TestConfig(scoreWhenAllPassed, testVisibility, suiteName);
+        this.console = console;
         try {
-            PrintStream resultFile = new PrintStream(new File("printed.txt"));
+            PrintStream resultFile = new PrintStream("printed.txt");
             System.setOut(resultFile);
         } catch (Exception e) {
         }
@@ -71,15 +76,20 @@ public class TestBundle {
         String noPartialGrade = "{\n" +
                 "    \"score\": 0,\n" +
                 "    \"maxscore\": 0,\n" +
-                "    \"status\": \"" + (score == maxscore ? "passed" : "failed") + "\",\n" +
+                "    \"status\": \" failed\",\n" +
                 "    \"name\": \"" + config.getSuiteName() + " - " + testname + "\",\n" +
                 "    \"output\": \"" + message + "\",\n" +
                 "    \"visibility\": \"" + config.getTestVisibility().name() + "\"\n" +
                 "},";
 
+        allPassed &= (score == maxscore);
+
         sumScore += score;
         allGradesStringWithPartialScores += partialGrade;
-        allGradesString += noPartialGrade;
+
+        if (score != maxscore) {
+            allGradesStringNoPartialFailedTests += noPartialGrade;
+        }
     }
 
     /**
@@ -87,7 +97,7 @@ public class TestBundle {
      */
     protected final void printResults() {
         if (allPassed) {
-            // All tests passed and the config is set to score when all passed
+            // All tests passed
             String grade = "{\n" +
                     "    \"score\": " + sumScore + ",\n" +
                     "    \"maxscore\": " + sumScore + ",\n" +
@@ -96,13 +106,13 @@ public class TestBundle {
                     "    \"output\": \"Passed!\",\n" +
                     "    \"visibility\": \"" + config.getTestVisibility().name() + "\"\n" +
                     "},";
-            System.out.println(grade);
+            console.println(grade);
         } else if (config.isScoreWhenAllPassed()) {
-            // Not all tests passed and the config is set to score when all passed
-            System.out.println(allGradesStringWithPartialScores);
+            // Not all tests passed and the config is set to ALLOW partial scoring
+            console.println(allGradesStringWithPartialScores);
         } else {
-            // Not all tests passed and the config is set to allow partial scoring
-            System.out.println(allGradesString);
+            // Not all tests passed and the config is set to NO partial scoring
+            console.println(allGradesStringNoPartialFailedTests);
         }
     }
 }
