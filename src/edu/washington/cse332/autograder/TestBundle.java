@@ -59,8 +59,6 @@ public class TestBundle {
             debugOutput = new PrintStream(new FileOutputStream("debugInfo.txt", false));
         } catch (Exception e) {
         }
-        runTests();
-        printResults();
     }
 
     /**
