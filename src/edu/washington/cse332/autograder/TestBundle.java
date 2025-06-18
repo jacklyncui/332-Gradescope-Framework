@@ -3,6 +3,7 @@ package edu.washington.cse332.autograder;
 import edu.washington.cse332.autograder.config.TestConfig;
 import edu.washington.cse332.autograder.config.Visibility;
 
+import java.io.FileOutputStream;
 import java.io.PrintStream;
 
 public class TestBundle {
@@ -33,10 +34,14 @@ public class TestBundle {
     private int sumScore = 0;
 
     /**
-     * <p>The output flow for autograder</p>
+     * <p>The output flow for autograder JSONS</p>
      */
     private final PrintStream console;
 
+    /**
+     * <p>The output flow for autograder to CONSOLE</p>
+     */
+    private PrintStream debugOutput;
 
     /**
      * The constructor of TestBundle
@@ -51,6 +56,7 @@ public class TestBundle {
         try {
             PrintStream resultFile = new PrintStream("printed.txt");
             System.setOut(resultFile);
+            debugOutput = new PrintStream(new FileOutputStream("debugInfo.txt", false));
         } catch (Exception e) {
         }
         runTests();
@@ -113,6 +119,15 @@ public class TestBundle {
         } else {
             // Not all tests passed and the config is set to NO partial scoring
             console.println(allGradesStringNoPartialFailedTests);
+        }
+    }
+
+    /**
+     * <p>Add information to the debug output flow</p>
+     */
+    public final void addDebugInfo(String info) {
+        if (debugOutput != null) {
+            debugOutput.println(info);
         }
     }
 }
