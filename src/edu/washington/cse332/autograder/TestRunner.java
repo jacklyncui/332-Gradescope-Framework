@@ -73,7 +73,14 @@ public class TestRunner {
             } catch (InvocationTargetException ite) {
                 Throwable ex = ite.getCause();
                 allPassed = false;
-                String msg = ex == null ? "Unknown failure" : ex.getMessage();
+                String msg;
+                if(ex == null) {
+                    msg = "Unknown failure";
+                } else if (ex instanceof WrongResultException) {
+                    msg = ex.getMessage();
+                } else {
+                    msg = ex.getClass().getName() + ": " + ex.getMessage();
+                }
                 jsonEntries.add(makeJson(0, points, suiteName + " - " + testName,
                         msg.replace("\"","\\\""), vis));
             }

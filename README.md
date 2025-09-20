@@ -14,8 +14,8 @@ Below is a brief overview of the annotations provided:
 Meanwhile, you will need to use shell scripts to compile and run the autograder. The students' submissions will be
 passed as command-line arguments to the autograder.
 ```bash
-javac -cp ".:/path/to/framework.jar" path/to/student/submission.java
-java -cp ".:/path/to/framework.jar" edu.washington.cse332.autograder.TestRunner path/to/student/submission
+javac -cp ".:/path/to/framework.jar" path/to/test/File.java
+java -cp ".:/path/to/framework.jar" edu.washington.cse332.autograder.TestRunner path/to/test/File
 ```
 
 ## Acknowledgements
