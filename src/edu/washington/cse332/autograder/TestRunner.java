@@ -49,6 +49,7 @@ public class TestRunner {
         // Prepare to collect results
         boolean allPassed = true;
         int totalPossible = 0;
+        boolean isSanityCheck = suiteAnn.sanityCheck();
         List<String> jsonEntries = new ArrayList<>();
 
         // Instantiate your test class
@@ -69,7 +70,7 @@ public class TestRunner {
                 m.invoke(instance);
                 // passed
                 jsonEntries.add(makeJson(points, points, suiteName + " - " + testName,
-                        "Passed", vis));
+                        "Passed", vis, isSanityCheck));
             } catch (InvocationTargetException ite) {
                 Throwable ex = ite.getCause();
                 allPassed = false;
@@ -82,7 +83,7 @@ public class TestRunner {
                     msg = ex.getClass().getName() + ": " + ex.getMessage();
                 }
                 jsonEntries.add(makeJson(0, points, suiteName + " - " + testName,
-                        msg.replace("\"","\\\""), vis));
+                        msg.replace("\"","\\\""), vis, isSanityCheck));
             }
         }
 
@@ -93,26 +94,37 @@ public class TestRunner {
             // one big “All Tests” entry
             System.out.println(makeJson(totalPossible, totalPossible,
                     suiteName + " - All Tests",
-                    "Passed!", suiteVis));
+                    "Passed!", suiteVis, suiteAnn.sanityCheck()));
         } else if (partialCredit) {
             jsonEntries.forEach(System.out::println);
         } else {
             // only show the failures
             jsonEntries.stream()
-                    .filter(s -> s.contains("\"score\": 0,"))
+                    .filter(s -> s.contains("\"status\": \"failed\""))
                     .forEach(System.out::println);
         }
     }
 
     private static String makeJson(int score, int max, String name,
-                                   String output, Visibility vis) {
-        return "{\n" +
-                "  \"score\": "     + score + ",\n" +
-                "  \"maxscore\": "  + max   + ",\n" +
-                "  \"status\": \""  + (score==max ? "passed" : "failed") + "\",\n" +
-                "  \"name\": \""    + name  + "\",\n" +
-                "  \"output\": \""  + output+ "\",\n" +
-                "  \"visibility\": \"" + vis.name() + "\"\n" +
-                "},";
+                                   String output, Visibility vis, boolean isSanityCheck) {
+        if(isSanityCheck) {
+            return "{\n" +
+                    "  \"score\": "     + 0 + ",\n" +
+                    "  \"maxscore\": "  + 0   + ",\n" +
+                    "  \"status\": \""  + (score==max ? "passed" : "failed") + "\",\n" +
+                    "  \"name\": \""    + name  + "\",\n" +
+                    "  \"output\": \""  + output+ "\",\n" +
+                    "  \"visibility\": \"" + vis.name() + "\"\n" +
+                    "},";
+        } else {
+            return "{\n" +
+                    "  \"score\": "     + score + ",\n" +
+                    "  \"maxscore\": "  + max   + ",\n" +
+                    "  \"status\": \""  + (score==max ? "passed" : "failed") + "\",\n" +
+                    "  \"name\": \""    + name  + "\",\n" +
+                    "  \"output\": \""  + output+ "\",\n" +
+                    "  \"visibility\": \"" + vis.name() + "\"\n" +
+                    "},";
+        }
     }
 }

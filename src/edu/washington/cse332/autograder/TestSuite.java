@@ -26,4 +26,11 @@ public @interface TestSuite {
      * @return the visibility of this test suite
      */
     Visibility visibility() default Visibility.visible;
+
+    /**
+     * <p>Whether this suite is for sanity check</p>
+     * <p>If set to true, this suite will not be counted towards the total score.</p>
+     * @return if this suite is for sanity check
+     */
+    boolean sanityCheck() default false;
 }
