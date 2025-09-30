@@ -16,9 +16,10 @@ public @interface TestSuite {
      * <p>Indicates if student can receive partial points.</p>
      * <p>If set to true, student will only receive score when all tests in this bundle has passed.
      * Otherwise, student will receive partial points.</p>
+     * <p>By default, students WILL earn the partial credits</p>
      * @return if student can receive partial points
      */
-    boolean partialCredit() default false;
+    boolean partialCredit() default true;
 
     /**
      * <p>By default, the visibility of tests in this suite.</p>
