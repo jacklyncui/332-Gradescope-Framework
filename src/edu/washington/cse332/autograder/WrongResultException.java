@@ -1,7 +1,11 @@
 package edu.washington.cse332.autograder;
 
+import edu.washington.cse332.autograder.config.TestOutputFormat;
+
 public class WrongResultException extends RuntimeException {
     private static final long serialVersionUID = 1L;
+
+    private TestOutputFormat outputFormat = TestOutputFormat.TEXT;
 
     /**
      * Constructs a new WrongResultException with the specified detail message.
@@ -10,6 +14,17 @@ public class WrongResultException extends RuntimeException {
      */
     public WrongResultException(String message) {
         super(message);
+    }
+
+    /**
+     * Constructs a new WrongResultException with the specified detail message and output format.
+     *
+     * @param message the detail message
+     * @param format the output format
+     */
+    public WrongResultException(String message, TestOutputFormat format) {
+        super(message);
+        this.outputFormat = format;
     }
 
     /**
@@ -29,5 +44,13 @@ public class WrongResultException extends RuntimeException {
      */
     public WrongResultException(String message, Throwable cause) {
         super(message, cause);
+    }
+
+    /**
+     * Gets the output format associated with this exception.
+     * @return the output format
+     */
+    TestOutputFormat getOutputFormat() {
+        return outputFormat;
     }
 }

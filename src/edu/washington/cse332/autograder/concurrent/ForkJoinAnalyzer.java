@@ -3,9 +3,9 @@ package edu.washington.cse332.autograder.concurrent;
 import java.util.*;
 
 /**
- * Fork Join Analyzer. Must be used with instrumented tasks provided in this
- * package.
- *
+ * Fork Join Analyzer. Must be used with subtypes of {@link InstrumentedTask}
+ * provided in this package.
+ * 
  * @author Albert Du
  */
 public final class ForkJoinAnalyzer {
@@ -72,7 +72,7 @@ public final class ForkJoinAnalyzer {
     }
 
     /**
-     * For InstrumentedTask.
+     * For {@link InstrumentedTask}.
      *
      * @return a new Identifier.
      */
@@ -88,7 +88,7 @@ public final class ForkJoinAnalyzer {
     }
 
     /**
-     * For Instrumented Task
+     * For {@link InstrumentedTask}
      *
      * @param event to be recorded
      */

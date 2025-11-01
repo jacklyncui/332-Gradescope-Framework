@@ -14,22 +14,22 @@ record ForkJoinEdge(ForkJoinSegment start, ForkJoinSegment end, Type type) {
         /**
          * In a single task, following computes dependent on their antecedents.
          */
-        Sequential,
+        SEQUENTIAL,
         /**
          * A task calling a different task's compute method.
          */
-        Compute,
+        COMPUTE,
         /**
          * A compute finishing, the parent's next task depends on it.
          */
-        ComputeFinished,
+        RETURN,
         /**
          * A new task starts
          */
-        Fork,
+        FORK,
         /**
          * Parent must wait for child to finish
          */
-        Join
+        JOIN
     }
 }

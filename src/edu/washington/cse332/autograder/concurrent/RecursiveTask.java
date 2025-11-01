@@ -2,10 +2,11 @@ package edu.washington.cse332.autograder.concurrent;
 
 /**
  * This is equivalent to
- * `java.util.concurrent.RecursiveTask`
+ * {@link java.util.concurrent.RecursiveTask}
  * that is
- * capable of counting and analyzing calls to `fork`, `join`, and `compute`
- * This must be used with `InstrumentedForkJoinPool`.
+ * capable of counting and analyzing calls to {@link #fork()}, {@link #join()}, and
+ * {@link #compute()}.
+ * This must be used with {@link InstrumentedForkJoinPool}.
  *
  * @param <T>
  * @author Albert Du
@@ -13,15 +14,15 @@ package edu.washington.cse332.autograder.concurrent;
 public abstract class RecursiveTask<T> extends InstrumentedTask<T> {
     /**
      * We rename the compute definition in the student submission to
-     * __impl_compute()
-     * Leaving the body alone lets us log recursive calls to compute().
+     * {@link #__impl_compute()}
+     * Leaving the body alone lets us log recursive calls to {@link #compute()}.
      *
      * @return T result.
      */
     protected abstract T __impl_compute();
 
     /**
-     * Recursively called from __impl_compute().
+     * Recursively called from {@link #__impl_compute()}.
      * 
      * @return T result.
      */

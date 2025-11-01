@@ -1,7 +1,7 @@
 package edu.washington.cse332.autograder.concurrent;
 
 /**
- * A version of ForkJoinTask with event recording.
+ * A version of {@link java.util.concurrent.ForkJoinTask} with event recording.
  * 
  * @param <T> output type, if applicable
  * @author Albert Du
@@ -55,5 +55,6 @@ public abstract class InstrumentedTask<T> {
     protected final void logJoin() {
         analyzer.log(new ForkJoinEvent.JoinEvent(parentId, taskId));
     }
+    
     // #endregion
 }

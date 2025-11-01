@@ -4,7 +4,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Fork Join Graph. Produced as output from ForkJoinAnalyzer.
+ * Fork Join Graph. Produced as output from {@link ForkJoinAnalyzer}.
  *
  * @author Albert Du
  */
@@ -61,14 +61,26 @@ public final class ForkJoinGraph {
     // #endregion
 
     // #region Parallelism Metrics
+    /**
+     * Structural work: number of segments.
+     * @return Structural work.
+     */
     public double structuralWork() {
         return _segments.size();
     }
 
+    /**
+     * Empirical work: sum of segment durations.
+     * @return Empirical work in nanoseconds.
+     */
     public double empiricalWork() {
         return _segments.stream().map(ForkJoinSegment::getNanoSeconds).reduce(Long::sum).orElse(0L);
     }
 
+    /**
+     * Structural critical path length: longest path in graph by number of segments.
+     * @return
+     */
     public double structuralCriticalPath() {
         if (_segments.isEmpty())
             return 0.0;
@@ -88,6 +100,10 @@ public final class ForkJoinGraph {
         return best > 0 ? best : 1;
     }
 
+    /**
+     * Empirical critical path length: longest path in graph by segment durations.
+     * @return
+     */
     public double empiricalCriticalPath() {
         if (_segments.isEmpty())
             return 0.0;
@@ -109,10 +125,18 @@ public final class ForkJoinGraph {
         return best > 0 ? best : 1;
     }
 
+    /**
+     * Structural speedup: structural work / structural critical path.
+     * @return
+     */
     public double structuralSpeedup() {
         return structuralWork() / structuralCriticalPath();
     }
 
+    /**
+     * Empirical speedup: empirical work / empirical critical path.
+     * @return
+     */
     public double empiricalSpeedup() {
         return empiricalWork() / empiricalCriticalPath();
     }
@@ -151,11 +175,11 @@ public final class ForkJoinGraph {
             final var color = !fancy
                     ? "black"
                     : switch (e.type()) {
-                        case Sequential -> "black";
-                        case Fork -> "green";
-                        case Join -> "blue";
-                        case Compute -> "red";
-                        case ComputeFinished -> "orange";
+                        case SEQUENTIAL -> "black";
+                        case FORK -> "green";
+                        case JOIN -> "blue";
+                        case COMPUTE -> "red";
+                        case RETURN -> "orange";
                     };
             sb.append("  \"").append(e.start()).append("\" -> \"").append(e.end()).append("\" [color=").append(color)
                     .append("];\n");
@@ -290,7 +314,7 @@ public final class ForkJoinGraph {
         for (var entry : activeByTask.entrySet()) {
             var segs = entry.getValue();
             for (int i = 0; i + 1 < segs.size(); i++) {
-                edges.add(new ForkJoinEdge(segs.get(i), segs.get(i + 1), ForkJoinEdge.Type.Sequential));
+                edges.add(new ForkJoinEdge(segs.get(i), segs.get(i + 1), ForkJoinEdge.Type.SEQUENTIAL));
             }
         }
     }
@@ -303,25 +327,25 @@ public final class ForkJoinGraph {
                 var p = lastActiveEndingAtOrBefore(activeByTask.get(fe.getTaskId()), fe.getTimestamp());
                 var c = firstActive(activeByTask.get(fe.getChildId()));
                 if (p != null && c != null)
-                    edges.add(new ForkJoinEdge(p, c, ForkJoinEdge.Type.Fork));
+                    edges.add(new ForkJoinEdge(p, c, ForkJoinEdge.Type.FORK));
 
             } else if (e instanceof ForkJoinEvent.JoinEvent je) {
                 var cLast = lastActive(activeByTask.get(je.getChildId()));
                 var pNext = firstActiveStartingAtOrAfter(activeByTask.get(je.getTaskId()), je.getTimestamp());
                 if (cLast != null && pNext != null)
-                    edges.add(new ForkJoinEdge(cLast, pNext, ForkJoinEdge.Type.Join));
+                    edges.add(new ForkJoinEdge(cLast, pNext, ForkJoinEdge.Type.JOIN));
 
             } else if (e instanceof ForkJoinEvent.ComputeEvent ce) {
                 var p = lastActiveEndingAtOrBefore(activeByTask.get(ce.getTaskId()), ce.getTimestamp());
                 var cFirst = firstActive(activeByTask.get(ce.getChildId()));
                 if (p != null && cFirst != null)
-                    edges.add(new ForkJoinEdge(p, cFirst, ForkJoinEdge.Type.Compute));
+                    edges.add(new ForkJoinEdge(p, cFirst, ForkJoinEdge.Type.COMPUTE));
 
             } else if (e instanceof ForkJoinEvent.ComputeFinishedEvent cfe) {
                 var cLast = lastActive(activeByTask.get(cfe.getChildId()));
                 var pNext = firstActiveStartingAtOrAfter(activeByTask.get(cfe.getTaskId()), cfe.getTimestamp());
                 if (cLast != null && pNext != null)
-                    edges.add(new ForkJoinEdge(cLast, pNext, ForkJoinEdge.Type.ComputeFinished));
+                    edges.add(new ForkJoinEdge(cLast, pNext, ForkJoinEdge.Type.RETURN));
             }
         }
     }
