@@ -9,104 +9,15 @@ import java.util.stream.Collectors;
  * @author Albert Du
  */
 public final class ForkJoinGraph {
-    /**
-     * Represents a single execution segment.
-     * Enter Exit, and Joins form boundaries for each task id
-     */
-    private static class Segment {
-        private final long _taskId;
-        private final int segmentId;
-        private final ForkJoinEvent _startEvent;
-        private final ForkJoinEvent _finishEvent;
 
-        Segment(ForkJoinEvent startEvent, ForkJoinEvent finishEvent, int segId) {
-            if (startEvent.getTaskId() != finishEvent.getTaskId()) {
-                throw new IllegalArgumentException("startEvent must have the same taskId");
-            }
+    // #region Fields
+    private final List<ForkJoinSegment> _segments;
+    private final List<ForkJoinEdge> _edges;
+    private final ForkJoinSegment _root;
+    // #endregion
 
-            _taskId = startEvent.getTaskId();
-            _startEvent = startEvent;
-            _finishEvent = finishEvent;
-            segmentId = segId;
-        }
-
-        public long getTaskId() {
-            return _taskId;
-        }
-
-        public long getSegmentId() {
-            return segmentId;
-        }
-
-        public long getNanoSeconds() {
-            return _finishEvent.getTimestamp() - _startEvent.getTimestamp();
-        }
-
-        public long getStartTime() {
-            return _startEvent.getTimestamp();
-        }
-
-        public long getEndTime() {
-            return _finishEvent.getTimestamp();
-        }
-
-        @Override
-        public int hashCode() {
-            return (int) _taskId ^ (int) (_taskId << 32) ^ segmentId;
-        }
-
-        @Override
-        public boolean equals(Object other) {
-            return other instanceof Segment seg
-                    && seg.segmentId == segmentId
-                    && seg._taskId == _taskId;
-        }
-
-        @Override
-        public String toString() {
-            return _taskId + "_" + segmentId;
-        }
-    }
-
-    /**
-     * A directed graph edge. start -> end iff end must wait for start to finish
-     * before itself beginning.
-     *
-     * @param start
-     * @param end
-     * @param type  The reason for this edge's addition.
-     */
-    private record Edge(Segment start, Segment end, Type type) {
-        public enum Type {
-            /**
-             * In a single task, following computes dependent on their antecedents.
-             */
-            Sequential,
-            /**
-             * A task calling a different task's compute method.
-             */
-            Compute,
-            /**
-             * A compute finishing, the parent's next task depends on it.
-             */
-            ComputeFinished,
-            /**
-             * A new task starts
-             */
-            Fork,
-            /**
-             * Parent must wait for child to finish
-             */
-            Join
-        }
-    }
-
-    // Fields:
-    private final List<Segment> _segments;
-    private final List<Edge> _edges;
-    private final Segment _root;
-
-    private ForkJoinGraph(List<Segment> segments, List<Edge> edges, Segment root) {
+    // #region Constructor and Factory
+    private ForkJoinGraph(List<ForkJoinSegment> segments, List<ForkJoinEdge> edges, ForkJoinSegment root) {
         _segments = segments;
         _edges = edges;
         _root = root;
@@ -115,7 +26,7 @@ public final class ForkJoinGraph {
     static ForkJoinGraph create(List<ForkJoinEvent> events) {
         // If there are no events, return an empty graph
         if (events.size() == 0)
-            return new ForkJoinGraph(new ArrayList<Segment>(), new ArrayList<Edge>(), null);
+            return new ForkJoinGraph(Collections.emptyList(), Collections.emptyList(), null);
 
         // Normalize per task and sort by time.
         final var perTask = groupByTaskSorted(events);
@@ -131,14 +42,14 @@ public final class ForkJoinGraph {
         // - Sequential within each task (active-only)
         // - Fork / Join / Compute / ComputeFinished across tasks, snapped to nearest
         // active segments
-        final var edges = new ArrayList<Edge>();
+        final var edges = new ArrayList<ForkJoinEdge>();
         addSequentialEdges(activeByTask, edges);
         addCausalEdges(events, activeByTask, edges);
 
         // Pick the earliest active segment as root (must exist)
         final var root = activeByTask.values().stream()
                 .flatMap(List::stream)
-                .min(Comparator.comparingLong(Segment::getStartTime))
+                .min(Comparator.comparingLong(ForkJoinSegment::getStartTime))
                 .orElseThrow(() -> new IllegalStateException("No active segments constructed"));
 
         // Flatten active segments for fields
@@ -147,12 +58,15 @@ public final class ForkJoinGraph {
         return new ForkJoinGraph(allActive, edges, root);
     }
 
-    public double structuralWork() { // # of active segments
+    // #endregion
+
+    // #region Parallelism Metrics
+    public double structuralWork() {
         return _segments.size();
     }
 
     public double empiricalWork() {
-        return _segments.stream().map(Segment::getNanoSeconds).reduce(Long::sum).orElse(0L);
+        return _segments.stream().map(ForkJoinSegment::getNanoSeconds).reduce(Long::sum).orElse(0L);
     }
 
     public double structuralCriticalPath() {
@@ -162,11 +76,11 @@ public final class ForkJoinGraph {
         var topo = topoOrder();
         var succ = successorsMap();
 
-        Map<Segment, Integer> dist = new HashMap<>();
+        Map<ForkJoinSegment, Integer> dist = new HashMap<>();
         int best = 0;
-        for (Segment u : topo) {
+        for (ForkJoinSegment u : topo) {
             int du = Math.max(dist.getOrDefault(u, 0), 1); // unit weight
-            for (Segment v : succ.getOrDefault(u, List.of())) {
+            for (ForkJoinSegment v : succ.getOrDefault(u, List.of())) {
                 dist.put(v, Math.max(dist.getOrDefault(v, 0), du + 1));
             }
             best = Math.max(best, du);
@@ -181,12 +95,12 @@ public final class ForkJoinGraph {
         var topo = topoOrder();
         var succ = successorsMap();
 
-        Map<Segment, Integer> dist = new HashMap<>();
+        Map<ForkJoinSegment, Integer> dist = new HashMap<>();
         int best = 0;
 
-        for (Segment u : topo) {
+        for (ForkJoinSegment u : topo) {
             int du = dist.getOrDefault(u, 0);
-            for (Segment v : succ.getOrDefault(u, List.of())) {
+            for (ForkJoinSegment v : succ.getOrDefault(u, List.of())) {
                 dist.put(v, Math.max(dist.getOrDefault(v, 0), du + (int) u.getNanoSeconds()));
             }
             best = Math.max(best, du + (int) u.getNanoSeconds());
@@ -203,10 +117,23 @@ public final class ForkJoinGraph {
         return empiricalWork() / empiricalCriticalPath();
     }
 
+    // #endregion
+
+    // #region DOT Graph Output
+
+    /**
+     * Convert to DOT format for visualization.
+     * @return A fancy formatted DOT string.
+     */
     public String toDOT() {
         return toDOT(true);
     }
 
+    /**
+     * Convert to DOT format for visualization.
+     * @param fancy Whether to use fancy formatting.
+     * @return A DOT string.
+     */
     public String toDOT(boolean fancy) {
         var sb = new StringBuilder();
         sb.append("digraph G {\n");
@@ -223,14 +150,14 @@ public final class ForkJoinGraph {
         for (var e : _edges) {
             final var color = !fancy
                     ? "black"
-                    : switch (e.type) {
+                    : switch (e.type()) {
                         case Sequential -> "black";
                         case Fork -> "green";
                         case Join -> "blue";
                         case Compute -> "red";
                         case ComputeFinished -> "orange";
                     };
-            sb.append("  \"").append(e.start).append("\" -> \"").append(e.end).append("\" [color=").append(color)
+            sb.append("  \"").append(e.start()).append("\" -> \"").append(e.end()).append("\" [color=").append(color)
                     .append("];\n");
         }
 
@@ -238,24 +165,27 @@ public final class ForkJoinGraph {
         return sb.toString();
     }
 
-    private Map<Segment, List<Segment>> successorsMap() {
-        final var map = new HashMap<Segment, List<Segment>>();
-        for (Edge e : _edges)
+    // #endregion
+
+    // #region Private Graph Helpers
+    private Map<ForkJoinSegment, List<ForkJoinSegment>> successorsMap() {
+        final var map = new HashMap<ForkJoinSegment, List<ForkJoinSegment>>();
+        for (ForkJoinEdge e : _edges)
             map.computeIfAbsent(e.start(), k -> new ArrayList<>()).add(e.end());
 
         return map;
     }
 
-    private List<Segment> topoOrder() {
-        // DFS from root over edges (ACTIVE-only graph)
-        final var order = new ArrayList<Segment>();
-        final var seen = new HashSet<Segment>();
+    private List<ForkJoinSegment> topoOrder() {
+        // DFS from root over edges
+        final var order = new ArrayList<ForkJoinSegment>();
+        final var seen = new HashSet<ForkJoinSegment>();
         dfs(_root, seen, order);
         Collections.reverse(order);
         return order;
     }
 
-    private void dfs(Segment u, Set<Segment> seen, List<Segment> out) {
+    private void dfs(ForkJoinSegment u, Set<ForkJoinSegment> seen, List<ForkJoinSegment> out) {
         if (!seen.add(u))
             return;
 
@@ -332,15 +262,15 @@ public final class ForkJoinGraph {
         return false;
     }
 
-    private static Map<Long, List<Segment>> buildActiveSegments(Map<Long, List<ForkJoinEvent>> perTask,
+    private static Map<Long, List<ForkJoinSegment>> buildActiveSegments(Map<Long, List<ForkJoinEvent>> perTask,
             Map<Long, List<long[]>> waitIntervals) {
-        Map<Long, List<Segment>> active = new HashMap<>();
+        Map<Long, List<ForkJoinSegment>> active = new HashMap<>();
         for (var entry : perTask.entrySet()) {
             long taskId = entry.getKey();
             var evts = entry.getValue();
             var waits = waitIntervals.get(taskId);
 
-            var segs = new ArrayList<Segment>();
+            var segs = new ArrayList<ForkJoinSegment>();
             for (int i = 0; i + 1 < evts.size(); i++) {
                 ForkJoinEvent a = evts.get(i), b = evts.get(i + 1);
                 long t0 = a.getTimestamp(), t1 = b.getTimestamp();
@@ -348,7 +278,7 @@ public final class ForkJoinGraph {
                     continue; // zero/negative -> ignore
                 if (withinAny(t0, t1, waits))
                     continue; // skip wait time
-                segs.add(new Segment(a, b, segs.size()));
+                segs.add(new ForkJoinSegment(a, b, segs.size()));
             }
             if (!segs.isEmpty())
                 active.put(taskId, segs);
@@ -356,62 +286,62 @@ public final class ForkJoinGraph {
         return active;
     }
 
-    private static void addSequentialEdges(Map<Long, List<Segment>> activeByTask, List<Edge> edges) {
+    private static void addSequentialEdges(Map<Long, List<ForkJoinSegment>> activeByTask, List<ForkJoinEdge> edges) {
         for (var entry : activeByTask.entrySet()) {
             var segs = entry.getValue();
             for (int i = 0; i + 1 < segs.size(); i++) {
-                edges.add(new Edge(segs.get(i), segs.get(i + 1), Edge.Type.Sequential));
+                edges.add(new ForkJoinEdge(segs.get(i), segs.get(i + 1), ForkJoinEdge.Type.Sequential));
             }
         }
     }
 
     private static void addCausalEdges(List<ForkJoinEvent> events,
-            Map<Long, List<Segment>> activeByTask,
-            List<Edge> edges) {
+            Map<Long, List<ForkJoinSegment>> activeByTask,
+            List<ForkJoinEdge> edges) {
         for (var e : events) {
             if (e instanceof ForkJoinEvent.ForkEvent fe) {
                 var p = lastActiveEndingAtOrBefore(activeByTask.get(fe.getTaskId()), fe.getTimestamp());
                 var c = firstActive(activeByTask.get(fe.getChildId()));
                 if (p != null && c != null)
-                    edges.add(new Edge(p, c, Edge.Type.Fork));
+                    edges.add(new ForkJoinEdge(p, c, ForkJoinEdge.Type.Fork));
 
             } else if (e instanceof ForkJoinEvent.JoinEvent je) {
                 var cLast = lastActive(activeByTask.get(je.getChildId()));
                 var pNext = firstActiveStartingAtOrAfter(activeByTask.get(je.getTaskId()), je.getTimestamp());
                 if (cLast != null && pNext != null)
-                    edges.add(new Edge(cLast, pNext, Edge.Type.Join));
+                    edges.add(new ForkJoinEdge(cLast, pNext, ForkJoinEdge.Type.Join));
 
             } else if (e instanceof ForkJoinEvent.ComputeEvent ce) {
                 var p = lastActiveEndingAtOrBefore(activeByTask.get(ce.getTaskId()), ce.getTimestamp());
                 var cFirst = firstActive(activeByTask.get(ce.getChildId()));
                 if (p != null && cFirst != null)
-                    edges.add(new Edge(p, cFirst, Edge.Type.Compute));
+                    edges.add(new ForkJoinEdge(p, cFirst, ForkJoinEdge.Type.Compute));
 
             } else if (e instanceof ForkJoinEvent.ComputeFinishedEvent cfe) {
                 var cLast = lastActive(activeByTask.get(cfe.getChildId()));
                 var pNext = firstActiveStartingAtOrAfter(activeByTask.get(cfe.getTaskId()), cfe.getTimestamp());
                 if (cLast != null && pNext != null)
-                    edges.add(new Edge(cLast, pNext, Edge.Type.ComputeFinished));
+                    edges.add(new ForkJoinEdge(cLast, pNext, ForkJoinEdge.Type.ComputeFinished));
             }
         }
     }
 
-    private static Segment firstActive(List<Segment> segs) {
+    private static ForkJoinSegment firstActive(List<ForkJoinSegment> segs) {
         if (segs == null || segs.isEmpty())
             return null;
         return segs.getFirst();
     }
 
-    private static Segment lastActive(List<Segment> segs) {
+    private static ForkJoinSegment lastActive(List<ForkJoinSegment> segs) {
         if (segs == null || segs.isEmpty())
             return null;
         return segs.getLast();
     }
 
-    private static Segment lastActiveEndingAtOrBefore(List<Segment> segs, long ts) {
+    private static ForkJoinSegment lastActiveEndingAtOrBefore(List<ForkJoinSegment> segs, long ts) {
         if (segs == null)
             return null;
-        Segment cand = null;
+        ForkJoinSegment cand = null;
         for (var s : segs) {
             if (s.getEndTime() <= ts)
                 cand = s;
@@ -421,7 +351,7 @@ public final class ForkJoinGraph {
         return cand;
     }
 
-    private static Segment firstActiveStartingAtOrAfter(List<Segment> segs, long ts) {
+    private static ForkJoinSegment firstActiveStartingAtOrAfter(List<ForkJoinSegment> segs, long ts) {
         if (segs == null)
             return null;
         for (var s : segs) {
@@ -430,4 +360,5 @@ public final class ForkJoinGraph {
         }
         return null;
     }
+    // #endregion
 }

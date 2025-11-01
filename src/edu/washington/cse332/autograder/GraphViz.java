@@ -2,15 +2,18 @@ package edu.washington.cse332.autograder;
 
 import java.util.Base64;
 
+/**
+ * Utility class for rendering GraphViz DOT source code to images.
+ * 
+ * @author Albert Du
+ */
 public class GraphViz {
 
     /**
      * Renders the given DOT source code to an SVG image in base64.
      * Ready for use in an img tag.
-     * 
      * @param dotSource The DOT source code representing the graph.
-     * @return The SVG representation of the graph as a String.
-     * @author Albert Du
+     * @return A base64 webp representation of the graph as a String.
      */
     public static String renderDOTToBase64(String dotSource) {
         try {

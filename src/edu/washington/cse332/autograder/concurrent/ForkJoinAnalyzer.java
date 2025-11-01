@@ -47,7 +47,7 @@ public final class ForkJoinAnalyzer {
      * Resets the analyzer's state. Call this before fork join timings are desired
      * or after to clean up.
      */
-    public void reset() {
+    private void reset() {
         taskCount = 0;
         executingTask = -1;
         perClassCount.clear();
@@ -59,7 +59,7 @@ public final class ForkJoinAnalyzer {
      *
      * @return Results, including graph information and task counts.
      */
-    public ParallelismResult analyze() {
+    private ParallelismResult analyze() {
         return new ParallelismResult(ForkJoinGraph.create(eventLog), taskCount, Map.copyOf(perClassCount));
     }
 

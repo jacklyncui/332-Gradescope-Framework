@@ -7,13 +7,13 @@ package edu.washington.cse332.autograder.concurrent;
  * @author Albert Du
  */
 public abstract class InstrumentedTask<T> {
-    // region private fields
+    // #region private fields
     private final ForkJoinAnalyzer analyzer = ForkJoinAnalyzer.shared();
     private final long parentId = analyzer.getExecutingTaskId();
     private final long taskId = analyzer.makeId(this);
-    // endregion
+    // #endregion
 
-    // region Simulated functionality
+    // #region Simulated functionality
     public final T join() {
         T result = execute();
         logJoin();
@@ -25,11 +25,11 @@ public abstract class InstrumentedTask<T> {
         logFork();
         return this;
     }
-    // endregion
+    // #endregion
 
     protected abstract T execute();
 
-    // region Event Loggers
+    // #region Event Loggers
     protected final void logCompute() {
         analyzer.log(new ForkJoinEvent.ComputeEvent(parentId, taskId));
     }
@@ -55,5 +55,5 @@ public abstract class InstrumentedTask<T> {
     protected final void logJoin() {
         analyzer.log(new ForkJoinEvent.JoinEvent(parentId, taskId));
     }
-    // endregion
+    // #endregion
 }
