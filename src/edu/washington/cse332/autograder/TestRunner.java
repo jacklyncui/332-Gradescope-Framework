@@ -95,6 +95,14 @@ public class TestRunner {
                         Output.getOutput(), Output.getFormat(), vis, isSanityCheck));
             } catch (InvocationTargetException ite) {
                 Throwable ex = ite.getCause();
+
+                if (ex instanceof RightResultException rre) {
+                    // special case: right result but with extra output
+                    entryList.add(makeJson(points, points, suiteName + " - " + testName,
+                            rre.getMessage(), rre.getOutputFormat(), vis, isSanityCheck));
+                    continue;
+                }
+
                 allPassed = false;
                 String msg;
                 TestOutputFormat format;
@@ -153,6 +161,7 @@ public class TestRunner {
                     "  \"status\": \"" + (score == max ? "passed" : "failed") + "\",\n" +
                     "  \"name\": \"" + name + "\",\n" +
                     "  \"output\": \"" + escapeJson(output) + "\",\n" +
+                    "  \"output_format\": \"" + outputFormat + "\",\n" +
                     "  \"visibility\": \"" + vis.name() + "\"\n" +
                     "},";
         }

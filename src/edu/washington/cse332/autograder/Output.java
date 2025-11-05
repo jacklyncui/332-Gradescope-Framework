@@ -2,6 +2,11 @@ package edu.washington.cse332.autograder;
 
 import edu.washington.cse332.autograder.config.TestOutputFormat;
 
+/**
+ * A thread-local output holder for test result outputs.
+ * 
+ * @author Albert Du
+ */
 public class Output {
     private Output() {
         // prevent instantiation
@@ -19,6 +24,9 @@ public class Output {
         set(out, TestOutputFormat.TEXT);
     }
 
+    /**
+     * Resets the output holder to its initial state.
+     */
     static void reset() {
         format.set(TestOutputFormat.TEXT);
         output.set("Passed");

@@ -2,6 +2,13 @@ package edu.washington.cse332.autograder;
 
 import edu.washington.cse332.autograder.config.TestOutputFormat;
 
+/**
+ * An exception indicating that the test produced an incorrect result.
+ * 
+ * Immediately terminates the test execution when thrown.
+ *
+ * @author Jacklyn Cui
+ */
 public class WrongResultException extends RuntimeException {
     private static final long serialVersionUID = 1L;
 

@@ -17,6 +17,7 @@ public class ForkJoinPool {
     }
 
     public <T> T invoke(InstrumentedTask<T> task) {
-        return task.execute();
+        ForkJoinAnalyzer.shared().logPoolInvoke();
+        return task.spawn();
     }
 }

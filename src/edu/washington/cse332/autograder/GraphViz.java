@@ -37,7 +37,7 @@ public class GraphViz {
 
             byte[] bytes;
             
-            // Read SVG output from the process's stdout
+            // Read webp output from the process's stdout
             try (var inStream = process.getInputStream()) {
                 bytes = inStream.readAllBytes();
             }

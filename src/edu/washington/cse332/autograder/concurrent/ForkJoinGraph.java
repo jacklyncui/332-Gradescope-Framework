@@ -66,7 +66,7 @@ public final class ForkJoinGraph {
      * @return Structural work.
      */
     public double structuralWork() {
-        return _segments.size();
+        return Math.max(1, _segments.size());
     }
 
     /**
@@ -83,7 +83,7 @@ public final class ForkJoinGraph {
      */
     public double structuralCriticalPath() {
         if (_segments.isEmpty())
-            return 0.0;
+            return 1;
 
         var topo = topoOrder();
         var succ = successorsMap();
@@ -139,6 +139,16 @@ public final class ForkJoinGraph {
      */
     public double empiricalSpeedup() {
         return empiricalWork() / empiricalCriticalPath();
+    }
+
+    /**
+     * Final segment count: number of segments with no outgoing edges.
+     * @return 1 if everything is correct and all forked tasks were joined. Something greater than 1 indicates lost parallelism.
+     */
+    public int finalSegmentCount() {
+        // Number of segments with no outgoing edges
+        var dests = _edges.stream().map(ForkJoinEdge::start).collect(Collectors.toSet());
+        return (int) _segments.stream().filter(s -> !dests.contains(s)).count();
     }
 
     // #endregion
