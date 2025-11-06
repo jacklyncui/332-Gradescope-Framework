@@ -22,7 +22,7 @@ public abstract class RecursiveAction extends InstrumentedTask<Void> {
     /**
      * Recursively called from {@link #__impl_compute()}.
      */
-    protected final void compute() {
+    public final void compute() {
         logCompute();
         execute();
         logComputeFinished();

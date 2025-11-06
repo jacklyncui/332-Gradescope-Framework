@@ -26,7 +26,7 @@ public abstract class RecursiveTask<T> extends InstrumentedTask<T> {
      * 
      * @return T result.
      */
-    protected final T compute() {
+    public final T compute() {
         logCompute();
         var value = execute();
         logComputeFinished();

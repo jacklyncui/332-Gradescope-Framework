@@ -29,7 +29,7 @@ public abstract class InstrumentedTask<T> {
             throw new BadParallelismException("Task has already been computed. Do not call join.");
 
         joined = true;
-        
+
         result = execute();
         logJoin();
 
@@ -39,12 +39,12 @@ public abstract class InstrumentedTask<T> {
     public final InstrumentedTask<T> fork() {
         if (forked)
             throw new BadParallelismException("Task has already been forked. Do not fork again.");
-        
+
         if (computed)
             throw new BadParallelismException("Task has already been computed. Do not call fork.");
 
         forked = true;
-        
+
         logFork();
         return this;
     }
@@ -54,18 +54,20 @@ public abstract class InstrumentedTask<T> {
 
     /**
      * Exclusively called from ForkJoinPool to start execution of this task.
+     * 
      * @return
      */
     T spawn() {
         var realParentId = analyzer.getExecutingTaskId();
-        if (realParentId != -1) {
+        if (realParentId != -1)
             // we are contextually inside another task
             analyzer.log(new ForkJoinEvent.ComputeEvent(realParentId, taskId));
-        }
 
         var result = execute();
+
         if (realParentId != -1)
             analyzer.log(new ForkJoinEvent.ComputeFinishedEvent(realParentId, taskId));
+
         return result;
     }
 
@@ -106,6 +108,6 @@ public abstract class InstrumentedTask<T> {
     protected final void logJoin() {
         analyzer.log(new ForkJoinEvent.JoinEvent(parentId, taskId));
     }
-    
+
     // #endregion
 }

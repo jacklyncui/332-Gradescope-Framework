@@ -101,7 +101,8 @@ public final class ForkJoinAnalyzer {
      * @return a new Identifier.
      */
     <T> long makeId(InstrumentedTask<T> task) {
-        final var cname = task.getClass().getName();
+        final var cnameTokens = task.getClass().getName().split("\\$");
+        final var cname = cnameTokens[cnameTokens.length - 1];
 
         if (perClassCount.containsKey(cname))
             perClassCount.put(cname, perClassCount.get(cname) + 1);
