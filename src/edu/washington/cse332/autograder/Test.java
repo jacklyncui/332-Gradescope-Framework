@@ -26,4 +26,10 @@ public @interface Test {
      */
     Visibility visibility() default Visibility.visible;
 
+    /**
+     * <p>Whether to persist the output of this test case so that the student/grader can view it later.</p>
+     * <p>Defaults to false.</p>
+     * @return whether to persist the output of this test case
+     */
+    boolean persistOutput() default false;
 }
