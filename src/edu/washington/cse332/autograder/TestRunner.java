@@ -82,8 +82,6 @@ public class TestRunner {
             boolean persistOutput = testAnn.persistOutput();
             totalPossible += points;
 
-            var entryList = persistOutput ? persistentJsonEntries : jsonEntries;
-
             // Clear output buffer
             Output.reset();
 
@@ -91,15 +89,25 @@ public class TestRunner {
                 m.setAccessible(true);
                 m.invoke(instance);
                 // passed
-                entryList.add(makeJson(points, points, suiteName + " - " + testName,
+                jsonEntries.add(makeJson(points, points, suiteName + " - " + testName,
                         Output.getOutput(), Output.getFormat(), vis, isSanityCheck));
+
+                if (persistOutput) {
+                    persistentJsonEntries.add(makeJson(0, 0, suiteName + " - " + testName,
+                            Output.getOutput(), Output.getFormat(), vis, isSanityCheck));
+                }
             } catch (InvocationTargetException ite) {
                 Throwable ex = ite.getCause();
 
                 if (ex instanceof RightResultException rre) {
                     // special case: right result but with extra output
-                    entryList.add(makeJson(points, points, suiteName + " - " + testName,
+                    jsonEntries.add(makeJson(points, points, suiteName + " - " + testName,
                             rre.getMessage(), rre.getOutputFormat(), vis, isSanityCheck));
+
+                    if (persistOutput) {
+                        persistentJsonEntries.add(makeJson(0, 0, suiteName + " - " + testName,
+                                rre.getMessage(), rre.getOutputFormat(), vis, isSanityCheck));
+                    }
                     continue;
                 }
 
@@ -116,7 +124,7 @@ public class TestRunner {
                     msg = ex.getClass().getName() + ": " + ex.getMessage();
                     format = TestOutputFormat.TEXT;
                 }
-                entryList.add(makeJson(0, points, suiteName + " - " + testName,
+                jsonEntries.add(makeJson(0, points, suiteName + " - " + testName,
                         msg, format, vis, isSanityCheck));
             }
         }
@@ -125,10 +133,15 @@ public class TestRunner {
         System.setOut(origOut);
 
         if (allPassed) {
+
             // one big “All Tests” entry
             System.out.println(makeJson(totalPossible, totalPossible,
                     suiteName + " - All Tests",
                     "Passed!", TestOutputFormat.TEXT, suiteVis, suiteAnn.sanityCheck()));
+
+            // print the persistent entries right away, they have 0 score so they don't affect the total
+            persistentJsonEntries.forEach(System.out::println);
+
         } else if (partialCredit) {
             jsonEntries.forEach(System.out::println);
         } else {
@@ -137,9 +150,6 @@ public class TestRunner {
                     .filter(s -> s.contains("\"status\": \"failed\""))
                     .forEach(System.out::println);
         }
-
-        // Print persistent test results, these are always shown no matter what.
-        persistentJsonEntries.forEach(System.out::println);
     }
 
     private static String makeJson(int score, int max, String name,
