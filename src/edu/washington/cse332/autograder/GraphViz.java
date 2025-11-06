@@ -27,7 +27,7 @@ public class GraphViz {
      */
     private static String renderDOTToBase64(String dotSource) {
         try {
-            var pb = new ProcessBuilder("dot", "-Twebp", "-Gsize=20,20\\!", "-Gdpi=100");
+            var pb = new ProcessBuilder("dot", "-Twebp", "-Gsize=10,10\\!", "-Gdpi=100");
             var process = pb.start();
 
             // Write DOT source to the process's stdin
