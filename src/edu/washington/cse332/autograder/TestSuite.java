@@ -3,6 +3,12 @@ package edu.washington.cse332.autograder;
 import edu.washington.cse332.autograder.config.Visibility;
 import java.lang.annotation.*;
 
+/**
+ * <p>Annotation to mark a class as a test suite for the autograder.</p>
+ *
+ * @author Jacklyn Cui
+ */
+
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface TestSuite {

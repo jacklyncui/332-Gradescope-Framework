@@ -1,7 +1,9 @@
 package edu.washington.cse332.autograder.config;
 
 /**
- * Enum representing the format of test output.
+ * <p>Enum representing the format of test output.</p>
+ *
+ * @author Albert Du
  */
 public enum TestOutputFormat {
     HTML,

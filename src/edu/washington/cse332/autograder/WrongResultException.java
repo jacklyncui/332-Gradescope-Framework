@@ -3,9 +3,9 @@ package edu.washington.cse332.autograder;
 import edu.washington.cse332.autograder.config.TestOutputFormat;
 
 /**
- * An exception indicating that the test produced an incorrect result.
+ * <p>An exception indicating that the test produced an incorrect result.</p>
  * 
- * Immediately terminates the test execution when thrown.
+ * <p>Immediately terminates the test execution when thrown.</p>
  *
  * @author Jacklyn Cui
  */
@@ -15,7 +15,7 @@ public class WrongResultException extends RuntimeException {
     private TestOutputFormat outputFormat = TestOutputFormat.TEXT;
 
     /**
-     * Constructs a new WrongResultException with the specified detail message.
+     * <p>Constructs a new WrongResultException with the specified detail message.</p>
      *
      * @param message the detail message
      */
@@ -24,7 +24,7 @@ public class WrongResultException extends RuntimeException {
     }
 
     /**
-     * Constructs a new WrongResultException with the specified detail message and output format.
+     * <p>Constructs a new WrongResultException with the specified detail message and output format.</p>
      *
      * @param message the detail message
      * @param format the output format
@@ -35,7 +35,7 @@ public class WrongResultException extends RuntimeException {
     }
 
     /**
-     * Constructs a new WrongResultException with the specified cause.
+     * <p>Constructs a new WrongResultException with the specified cause.</p>
      *
      * @param cause the cause of the exception
      */
@@ -44,7 +44,7 @@ public class WrongResultException extends RuntimeException {
     }
 
     /**
-     * Constructs a new WrongResultException with the specified detail message and cause.
+     * <p>Constructs a new WrongResultException with the specified detail message and cause.</p>
      *
      * @param message the detail message
      * @param cause   the cause of the exception
@@ -54,7 +54,7 @@ public class WrongResultException extends RuntimeException {
     }
 
     /**
-     * Gets the output format associated with this exception.
+     * <p>Gets the output format associated with this exception.</p>
      * @return the output format
      */
     TestOutputFormat getOutputFormat() {

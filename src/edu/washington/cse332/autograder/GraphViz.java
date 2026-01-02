@@ -3,14 +3,14 @@ package edu.washington.cse332.autograder;
 import java.util.Base64;
 
 /**
- * Utility class for rendering GraphViz DOT source code to images.
+ * <p>Utility class for rendering GraphViz DOT source code to images.</p>
  * 
  * @author Albert Du
  */
 public class GraphViz {
 
     /**
-     * Renders the given DOT source code to an HTML tag with an image.
+     * <p>Renders the given DOT source code to an HTML tag with an image.</p>
      * @param dotSource The DOT source code to render.
      * @return An HTML img tag containing the rendered image.
      */
@@ -20,8 +20,8 @@ public class GraphViz {
     }
 
     /**
-     * Renders the given DOT source code to an SVG image in base64.
-     * Ready for use in an img tag.
+     * <p>Renders the given DOT source code to an SVG image in base64.</p>
+     * <p>Ready for use in an img tag.</p>
      * @param dotSource The DOT source code representing the graph.
      * @return A base64 webp representation of the graph as a String.
      */
