@@ -7,6 +7,17 @@ import java.io.*;
 import java.lang.reflect.*;
 import java.util.*;
 
+/**
+ * <p>
+ * A test runner for executing test suites annotated with {@link TestSuite} and
+ * their
+ * corresponding test cases annotated with {@link Test}.
+ * </p>
+ *
+ * @author Jacklyn Cui
+ * @author Albert Du
+ */
+
 public class TestRunner {
 
     /**
@@ -21,8 +32,7 @@ public class TestRunner {
      * </p>
      * <p>
      * Outputs results in JSON format to standard output, and captures any output
-     * printed to
-     * standard output during test execution in a file named
+     * printed to standard output during test execution in a file named
      * <code>printed.txt</code>.
      * </p>
      * 
@@ -40,7 +50,7 @@ public class TestRunner {
     }
 
     /**
-     * Runs a single test suite class.
+     * <p>Runs a single test suite class.</p>
      * 
      * @param suiteClass the class to run, must be annotated with {@link TestSuite}
      * @throws Exception if any error occurs during test execution
@@ -152,6 +162,18 @@ public class TestRunner {
         }
     }
 
+    /**
+     * <p>Creates a JSON representation of a test result.</p>
+     *
+     * @param score integer represents the score student gets
+     * @param max integer represents the maximum score possible
+     * @param name the name of the test
+     * @param output the text output of the test
+     * @param outputFormat the format of the output
+     * @param vis the visibility of the test
+     * @param isSanityCheck whether the test suite is a sanity check
+     * @return a JSON string representing the test result
+     */
     private static String makeJson(int score, int max, String name,
             String output, TestOutputFormat outputFormat, Visibility vis, boolean isSanityCheck) {
         if (isSanityCheck) {

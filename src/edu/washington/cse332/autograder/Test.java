@@ -4,6 +4,11 @@ import edu.washington.cse332.autograder.config.Visibility;
 
 import java.lang.annotation.*;
 
+/**
+ * <p>Annotation to mark a method as a test case for the autograder.</p>
+ *
+ * @author Jacklyn Cui
+ */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface Test {

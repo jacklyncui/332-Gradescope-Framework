@@ -3,7 +3,7 @@ package edu.washington.cse332.autograder;
 import edu.washington.cse332.autograder.config.TestOutputFormat;
 
 /**
- * A thread-local output holder for test result outputs.
+ * <p>A thread-local output holder for test result outputs.</p>
  * 
  * @author Albert Du
  */
@@ -25,7 +25,7 @@ public class Output {
     }
 
     /**
-     * Resets the output holder to its initial state.
+     * <p>Resets the output holder to its initial state.</p>
      */
     static void reset() {
         format.set(TestOutputFormat.TEXT);
